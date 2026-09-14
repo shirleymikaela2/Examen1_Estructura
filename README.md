@@ -204,7 +204,7 @@ public class Enemy {
     
     // Getters y setters omitidos por brevedad
 }
-Paso 6. Implementar la cola circular (o cola FIFO)
+## Paso 6. Implementar la cola circular (o cola FIFO)
 La cola usa un arreglo fijo, un índice frente, un índice fin y un contador. Después de cada inserción o eliminación, el operador módulo hace que el índice regrese a cero al llegar al límite. Así no se desplazan elementos y cada operación básica tiene costo O(1).
 
 java
@@ -255,7 +255,7 @@ public class ColaEnemigos {
 }
 Invariante principal: 0 <= size <= capacity; head señala el primer elemento válido y tail señala la siguiente posición libre.
 
-Paso 7. Modelar las torres, el alcance y las mejoras
+## Paso 7. Modelar las torres, el alcance y las mejoras
 Config.java funciona como un catálogo secuencial que almacena los costos y características principales de cada torre. La clase Tower combina un tipo de torre, una posición y un nivel de mejora.
 
 Una torre puede atacar a un Cozy cuando la distancia entre la torre y la posición del Cozy es menor o igual al alcance actual de la torre.
@@ -302,7 +302,8 @@ public class Tower {
         }
     }
 }
-Paso 8. Implementar la búsqueda de rutas
+
+## Paso 8. Implementar la búsqueda de rutas
 La ruta se define mediante una lista secuencial de waypoints en Config.java. Cada enemigo recorre la ruta usando una cola FIFO, donde el primer waypoint es el origen y el último es la fuente.
 
 java
@@ -340,7 +341,7 @@ public static boolean isOnPath(int x, int y, List<int[]> path, int tolerance) {
     }
     return false;
 }
-Paso 9. Gestionar las oleadas en orden FIFO
+## Paso 9. Gestionar las oleadas en orden FIFO
 Game.java usa ColaEnemigos para iniciar cada grupo de enemigos en el mismo orden en que fue programado. La dificultad aumenta mediante dos Cozy adicionales y 25 HP base adicionales por nivel de oleada.
 
 java
@@ -421,7 +422,7 @@ private void redo() {
 }
 Regla importante: si después de deshacer una acción se realiza una acción nueva, la pila de rehacer debe vaciarse, debido a que se crea una nueva línea dentro del historial.
 
-Paso 11. Procesar un quantum de combate
+## Paso 11. Procesar un quantum de combate
 La clase Game es la encargada de coordinar el procesamiento de cada quantum de combate. Al comenzar un quantum, se obtiene la cantidad de Cozy que se encuentran actualmente almacenados en la cola circular y se realizan exactamente ese número de iteraciones.
 
 En cada iteración se desencola un Cozy y las torres disponibles pueden aplicarle daño. Después del ataque pueden presentarse tres situaciones: el Cozy es eliminado porque sus puntos de vida llegan a cero, llega hasta la fuente y disminuye la vida del jugador, o continúa activo, avanza por la ruta y vuelve a colocarse al final de la cola circular.
@@ -464,7 +465,7 @@ private void updateEnemies() {
 }
 Este procedimiento permite que cada Cozy existente al comienzo del quantum sea procesado una sola vez. Los Cozy que continúan con vida y todavía no llegan a la fuente regresan al final de la cola para ser procesados nuevamente en el siguiente quantum.
 
-Paso 12. Construir la interfaz gráfica
+## Paso 12. Construir la interfaz gráfica
 La interfaz se desarrolló con Java Swing / AWT. El bucle principal (Main.java) controla los FPS y delega los eventos a Game. UI.java pinta la cuadrícula, la ruta, las torres, los Cozy y sus barras de vida. Los controles se desactivan cuando una operación no es válida.
 
 Zona	Información o acción
@@ -551,7 +552,7 @@ INICIO QUANTUM
 FIN QUANTUM
 El pseudocódigo representa el ciclo principal del procesamiento de los Cozy. Primero se agrega un nuevo Cozy cuando existe uno pendiente de la oleada. Posteriormente se procesa únicamente la cantidad de Cozy existentes en la cola al comenzar el quantum. Cada Cozy puede ser eliminado, llegar a la fuente o regresar al final de la cola para continuar participando en los siguientes ciclos.
 
-Paso 15. Prueba de escritorio
+## Paso 15. Prueba de escritorio
 Main.java ejecuta verificaciones automáticas sin bibliotecas externas. El proyecto se ejecutó con Java 11+ y las pruebas finalizaron correctamente.
 
 N.º	Prueba	Operación	Esperado	Obtenido
@@ -565,7 +566,7 @@ Pruebas correctas: 4/4
 
 Resultado general: la implementación satisface el uso obligatorio de Cozy, procesa cada objeto mediante cola circular, elimina los Cozy con HP igual a cero, ordena oleadas por FIFO, conserva el historial en pilas y muestra el estado del juego en una interfaz gráfica.
 
-Paso 16. Pruebas automáticas y verificación final
+## Paso 16. Pruebas automáticas y verificación final
 El proyecto incluye un conjunto de pruebas automáticas en PRUEBAS_MANUALES.md que verifican el correcto funcionamiento de las estructuras de datos y la lógica del juego. Estas pruebas se ejecutan sin bibliotecas externas y cubren los siguientes casos:
 
 N.º	Prueba	Operación	Esperado	Obtenido
