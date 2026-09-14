@@ -86,4 +86,10 @@ Examen1_Estructura/
 - Java Swing
 - Visual Studio Code
 - Git y GitHub
+## Conclusiones
+Pilas y colas tienen un comportamiento específico para llevar a cabo las operaciones de inserción y eliminación de datos. Este comportamiento determina las áreas de aplicación de las mismas.
+
+La implementación del simulador permitió comprobar cómo diferentes estructuras de datos pueden trabajar en conjunto dentro de una aplicación completa. La cola circular facilitó el procesamiento continuo de los Cozy, mientras que la cola FIFO permitió mantener el orden establecido de las oleadas.
+
+El uso de pilas para las acciones de deshacer y rehacer permitió mantener un historial organizado de las modificaciones realizadas sobre las torres, demostrando la utilidad del comportamiento LIFO dentro de una situación práctica del juego.
 
