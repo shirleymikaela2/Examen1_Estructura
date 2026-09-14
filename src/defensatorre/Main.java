@@ -1,0 +1,13 @@
+package defensatorre;
+
+import javax.swing.SwingUtilities;
+
+public class Main {
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            UI ventana = new UI();
+            ventana.setVisible(true);
+        });
+    }
+}
