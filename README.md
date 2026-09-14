@@ -79,18 +79,3 @@ Examen1_Estructura/
 - Visual Studio Code
 - Git y GitHub
 
-## Ejecución
-
-1. Clonar el repositorio:
-
-   ```bash
-   git clone https://github.com/shirleymikaela2/Examen1_Estructura.git
-   ```
-
-2. Abrir el proyecto en Visual Studio Code.
-
-3. Ejecutar la clase `Main.java`.
-
-## Repositorio
-
-[Ver repositorio en GitHub](https://github.com/shirleymikaela2/Examen1_Estructura)
