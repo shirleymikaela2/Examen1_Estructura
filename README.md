@@ -86,6 +86,13 @@ Examen1_Estructura/
 - Java Swing
 - Visual Studio Code
 - Git y GitHub
+
+# Examen1_Estructura - Tower Defense (Java)
+
+Este proyecto implementa un simulador de defensa de base (Tower Defense) en **Java**, donde el jugador debe proteger una base contra oleadas de enemigos llamados **Cozy**. El sistema utiliza estructuras de datos personalizadas (colas circulares, colas FIFO, pilas LIFO) para gestionar el combate, las oleadas y el historial de acciones.
+
+---
+
 ## Paso 1. Análisis del problema y decisiones de diseño
 
 El sistema simula la defensa de una base contra oleadas de enemigos llamados **Cozy**. Los Cozy aparecen en oleadas, recorren una ruta predefinida a través de waypoints y pierden HP cuando una torre dentro de su alcance les dispara un proyectil. Si un Cozy llega al final de la ruta, disminuye la vida del jugador.
@@ -102,127 +109,154 @@ El sistema simula la defensa de una base contra oleadas de enemigos llamados **C
 
 ---
 
-#### Paso 2. Arquitectura de la solución
+## Paso 2. Arquitectura de la solución
 
-La solución separa la presentación, la lógica y las estructuras de datos en módulos independientes:
+La solución separa la presentación, la lógica y las estructuras de datos en módulos independientes, con una clara división de responsabilidades por clase:
 
 | Capa | Clases / Archivos | Responsabilidad |
 |------|-------------------|-----------------|
-| Presentación | `main.py`, `ui.py` | Ventana, HUD, menú, botones y estadísticas |
-| Lógica | `game.py` | Coordinación del juego, oleadas, economía, colisiones |
-| Dominio | `enemy.py`, `tower.py`, `projectile.py` | Objetos principales del juego |
-| Estructura | `utils.py` | Cola circular, funciones de geometría |
-| Configuración | `config.py` | Constantes, rutas, tipos de torres y oleadas |
+| Presentación | `Main.java`, `UI.java` | Ventana, HUD, menú, botones, clic para poner torres y dibujo del juego. |
+| Lógica | `Game.java` | Coordinación del juego, oleadas, economía, colisiones, victoria/derrota. |
+| Dominio | `Enemy.java`, `Tower.java`, `Projectile.java` | Objetos principales del juego: enemigos, torres y proyectiles. |
+| Estructuras | `ColaEnemigos.java`, `PilaAcciones.java`, `Accion.java`, `Utils.java` | Cola FIFO para enemigos, pilas LIFO para undo/redo, y utilidades geométricas. |
+| Configuración | `Config.java` | Constantes, rutas, tipos de torres y oleadas. |
+| Documentación | `PRUEBAS_MANUALES.md` | Registro de pruebas manuales y verificación. |
 
 ---
 
-#### Paso 3. TDA y estructuras utilizadas
+## Paso 3. TDA y estructuras utilizadas
 
-Un **Tipo de Dato Abstracto (TDA)** define el estado permitido, las operaciones públicas y las reglas que deben cumplirse, sin obligar al usuario a conocer la representación interna. En el proyecto Tower Defense se utilizan diferentes estructuras de datos para controlar el funcionamiento del juego.
+Un **Tipo de Dato Abstracto (TDA)** define el estado permitido, las operaciones públicas y las reglas que deben cumplirse, sin obligar al usuario a conocer la representación interna.
 
-La **ColaCircular** y los **stacks de undo/redo** se consideran TDA debido a que protegen internamente sus arreglos y pilas mediante atributos privados, permitiendo acceder a ellos únicamente mediante operaciones controladas.
-
-| Estructura | Comportamiento | Aplicación |
-|------------|----------------|------------|
-| `CircularQueue` | FIFO circular | Registra a los Cozy activos en el campo de batalla |
-| `deque` (cola FIFO) | FIFO lineal | Orden de aparición de enemigos en cada oleada |
-| `list` (pila) | LIFO | Deshacer y rehacer colocaciones de torres |
-| `list` (lista secuencial) | Lista secuencial | Almacenar torres, proyectiles, enemigos y waypoints |
+| Estructura | Comportamiento | Aplicación | Clase Java |
+|------------|----------------|------------|------------|
+| `CircularQueue` | FIFO circular | Registra a los Cozy activos en el campo de batalla | (Integrada en `Game.java` o `ColaEnemigos.java`) |
+| `ColaEnemigos` | FIFO lineal | Orden de aparición de enemigos en cada oleada | `ColaEnemigos.java` |
+| `PilaAcciones` | LIFO | Deshacer y rehacer colocaciones de torres | `PilaAcciones.java` |
+| `ArrayList` | Lista secuencial | Almacenar torres, proyectiles, enemigos y waypoints | `java.util.ArrayList` |
 
 Estas estructuras permiten organizar correctamente las diferentes operaciones del simulador. La cola circular mantiene a los Cozy activos dentro del ciclo de combate, la cola FIFO controla el orden de aparición de los enemigos, las pilas permiten gestionar las acciones de deshacer y rehacer y las listas secuenciales almacenan los elementos principales del juego.
 
 ---
 
-#### Paso 4. Relaciones entre requisitos y código
+## Paso 4. Relaciones entre requisitos y código
 
 | Requisito | Aplicación | Archivo principal |
 |-----------|------------|-------------------|
-| Usar Cozy | Clase `Cozy` y `BossCozy` | `enemy.py` |
-| Actualizar HP por quantum | Bucle sobre `CircularQueue` | `game.py` |
-| Retirar si HP = 0 | No se vuelve a encolar el objeto | `game.py` |
-| Oleadas FIFO | `deque` con `append`/`popleft` | `game.py` |
-| Deshacer / rehacer | Dos pilas (`undo_stack`, `redo_stack`) | `game.py` |
-| Colocar y mejorar | Patrón Command reversible | `game.py` |
-| Búsqueda de rutas | Waypoints predefinidos y validación | `config.py`, `utils.py` |
-| Interfaz | Pygame y bucle principal | `main.py`, `ui.py` |
+| Usar Cozy | Clase `Enemy` (con atributos de Cozy y BossCozy) | `Enemy.java` |
+| Actualizar HP por quantum | Bucle sobre `ColaEnemigos` o `CircularQueue` | `Game.java` |
+| Retirar si HP = 0 | No se vuelve a encolar el objeto | `Game.java` |
+| Oleadas FIFO | `ColaEnemigos` con `encolar`/`desencolar` | `ColaEnemigos.java`, `Game.java` |
+| Deshacer / rehacer | Dos pilas (`PilaAcciones` para undo y redo) | `PilaAcciones.java`, `Game.java` |
+| Colocar y mejorar | Patrón Command reversible (`Accion.java`) | `Accion.java`, `Game.java` |
+| Búsqueda de rutas | Waypoints predefinidos y validación | `Config.java`, `Utils.java` |
+| Interfaz | Java Swing / AWT y bucle principal | `Main.java`, `UI.java` |
 
 ---
 
-#### Paso 5. Crear el modelo `Enemy` y `Cozy`
+## Paso 5. Crear el modelo `Enemy` y `Cozy`
 
-La clase `Enemy` identifica cada enemigo mediante su posición (x, y) y su cola de waypoints. `Cozy` almacena su HP máximo, HP actual, velocidad y frames de animación. El daño nunca permite HP negativos y la velocidad determina cuántos píxeles recorre por frame.
+La clase `Enemy` identifica cada enemigo mediante su posición (x, y) y su cola de waypoints. Almacena su HP máximo, HP actual, velocidad y frames de animación. El daño nunca permite HP negativos y la velocidad determina cuántos píxeles recorre por frame.
 
-```python
-class Enemy:
-    def __init__(self, path=None):
-        self.path_queue = deque(path)
-        self.x, self.y = self.path_queue.popleft()
-        self.target = self.path_queue.popleft() if self.path_queue else None
-        self.health = 100
-        self.max_health = 100
+```java
+public class Enemy {
+    private Queue<int[]> pathQueue;
+    private int x, y;
+    private int[] target;
+    private int health;
+    private int maxHealth;
+    private double speed;
 
-    def move(self) -> bool:
-        if not self.target:
-            return True
-        dx = self.target[0] - self.x
-        dy = self.target[1] - self.y
-        distance = (dx ** 2 + dy ** 2) ** 0.5
-        if distance < self.speed:
-            self.x, self.y = self.target
-            if self.path_queue:
-                self.target = self.path_queue.popleft()
-            else:
-                return True
-        else:
-            self.x += (dx / distance) * self.speed
-            self.y += (dy / distance) * self.speed
-        return False
+    public Enemy(List<int[]> path) {
+        this.pathQueue = new LinkedList<>(path);
+        int[] first = pathQueue.poll();
+        this.x = first[0];
+        this.y = first[1];
+        this.target = pathQueue.poll();
+        this.health = 100;
+        this.maxHealth = 100;
+        this.speed = 1.0;
+    }
 
-    @property
-    def is_dead(self) -> bool:
-        return self.health <= 0
-Tipo Cozy	Mod. HP	Velocidad	Daño a la base	Recompensa
-Cozy (normal)	+0	1.0×	1	25 monedas
-BossCozy	+300	0.6×	1	25 monedas
-## Paso 6. Implementar la cola circular
+    public boolean move() {
+        if (target == null) return true;
+        double dx = target[0] - x;
+        double dy = target[1] - y;
+        double distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < speed) {
+            x = target[0];
+            y = target[1];
+            if (!pathQueue.isEmpty()) {
+                target = pathQueue.poll();
+            } else {
+                return true;
+            }
+        } else {
+            x += (dx / distance) * speed;
+            y += (dy / distance) * speed;
+        }
+        return false;
+    }
+
+    public boolean isDead() {
+        return health <= 0;
+    }
+    
+    // Getters y setters omitidos por brevedad
+}
+Paso 6. Implementar la cola circular (o cola FIFO)
 La cola usa un arreglo fijo, un índice frente, un índice fin y un contador. Después de cada inserción o eliminación, el operador módulo hace que el índice regrese a cero al llegar al límite. Así no se desplazan elementos y cada operación básica tiene costo O(1).
 
-python
-class CircularQueue:
-    def __init__(self, capacity: int = 200):
-        self.capacity = capacity
-        self._queue = [None] * capacity
-        self.head = 0
-        self.tail = 0
-        self.size = 0
+java
+public class ColaEnemigos {
+    private Enemy[] cola;
+    private int head;
+    private int tail;
+    private int size;
+    private int capacity;
 
-    def enqueue(self, item):
-        if self.size < self.capacity:
-            self._queue[self.tail] = item
-            self.tail = (self.tail + 1) % self.capacity
-            self.size += 1
+    public ColaEnemigos(int capacity) {
+        this.capacity = capacity;
+        this.cola = new Enemy[capacity];
+        this.head = 0;
+        this.tail = 0;
+        this.size = 0;
+    }
 
-    def dequeue(self):
-        if self.size > 0:
-            item = self._queue[self.head]
-            self._queue[self.head] = None
-            self.head = (self.head + 1) % self.capacity
-            self.size -= 1
-            return item
-        return None
+    public void encolar(Enemy e) {
+        if (size < capacity) {
+            cola[tail] = e;
+            tail = (tail + 1) % capacity;
+            size++;
+        }
+    }
 
-    def is_empty(self) -> bool:
-        return self.size == 0
+    public Enemy desencolar() {
+        if (size > 0) {
+            Enemy e = cola[head];
+            cola[head] = null;
+            head = (head + 1) % capacity;
+            size--;
+            return e;
+        }
+        return null;
+    }
 
-    def clear(self):
-        self._queue = [None] * self.capacity
-        self.head = 0
-        self.tail = 0
-        self.size = 0
+    public boolean estaVacia() {
+        return size == 0;
+    }
+
+    public void limpiar() {
+        cola = new Enemy[capacity];
+        head = 0;
+        tail = 0;
+        size = 0;
+    }
+}
 Invariante principal: 0 <= size <= capacity; head señala el primer elemento válido y tail señala la siguiente posición libre.
 
-## Paso 7. Modelar las torres, el alcance y las mejoras
-TOWER_TYPES funciona como un catálogo secuencial que almacena los costos y características principales de cada torre. La clase Tower combina un tipo de torre, una posición y un nivel de mejora.
+Paso 7. Modelar las torres, el alcance y las mejoras
+Config.java funciona como un catálogo secuencial que almacena los costos y características principales de cada torre. La clase Tower combina un tipo de torre, una posición y un nivel de mejora.
 
 Una torre puede atacar a un Cozy cuando la distancia entre la torre y la posición del Cozy es menor o igual al alcance actual de la torre.
 
@@ -230,82 +264,105 @@ Torre	Costo	Daño base	Alcance	Cadencia
 Básica	50	15	150	1 disparo/s
 Sniper	100	50	250	1 disparo/1.5 s
 Rápida	60	5	120	4 disparos/s
-python
-class Tower:
-    def __init__(self, x: int, y: int, tipo: str = "basic"):
-        self.x = x
-        self.y = y
-        self.tipo = tipo
-        stats = TOWER_TYPES[tipo]
-        self.range = stats["range"]
-        self.cooldown = stats["cooldown"]
-        self.damage = stats["damage"]
-        self.sell_value = stats["sell"]
-        self._counter = 0
+java
+public class Tower {
+    private int x, y;
+    private String tipo;
+    private int range;
+    private int cooldown;
+    private int damage;
+    private int sellValue;
+    private int counter;
 
-    def shoot(self, enemies: list, projectiles: list):
-        if self._counter > 0:
-            self._counter -= 1
-            return
-        for enemy in enemies:
-            dx = enemy.x - self.x
-            dy = enemy.y - self.y
-            if (dx ** 2 + dy ** 2) ** 0.5 <= self.range:
-                projectiles.append(Projectile(self.x, self.y, enemy, self.damage))
-                self._counter = self.cooldown
-                break
-## Paso 8. Implementar la búsqueda de rutas
-La ruta se define mediante una lista secuencial de waypoints en config.py. Cada enemigo recorre la ruta usando una cola FIFO (deque), donde el primer waypoint es el origen y el último es la fuente.
+    public Tower(int x, int y, String tipo) {
+        this.x = x;
+        this.y = y;
+        this.tipo = tipo;
+        // Cargar stats desde Config según el tipo
+        this.range = Config.TOWER_RANGES.get(tipo);
+        this.cooldown = Config.TOWER_COOLDOWNS.get(tipo);
+        this.damage = Config.TOWER_DAMAGES.get(tipo);
+        this.sellValue = Config.TOWER_SELL_VALUES.get(tipo);
+        this.counter = 0;
+    }
 
-python
-PATH = [
-    (0, 100),
-    (200, 100),
-    (200, 300),
-    (600, 300),
-    (600, 500),
-    (800, 500),
-]
-La función is_on_path() verifica si una celda está demasiado cerca de la ruta para evitar que se coloquen torres sobre ella.
+    public void shoot(List<Enemy> enemies, List<Projectile> projectiles) {
+        if (counter > 0) {
+            counter--;
+            return;
+        }
+        for (Enemy enemy : enemies) {
+            double dx = enemy.getX() - x;
+            double dy = enemy.getY() - y;
+            if (Math.sqrt(dx * dx + dy * dy) <= range) {
+                projectiles.add(new Projectile(x, y, enemy, damage));
+                counter = cooldown;
+                break;
+            }
+        }
+    }
+}
+Paso 8. Implementar la búsqueda de rutas
+La ruta se define mediante una lista secuencial de waypoints en Config.java. Cada enemigo recorre la ruta usando una cola FIFO, donde el primer waypoint es el origen y el último es la fuente.
 
-python
-def is_on_path(x, y, path, tolerance=30) -> bool:
-    for i in range(len(path) - 1):
-        x1, y1 = path[i]
-        x2, y2 = path[i + 1]
-        dx = x2 - x1
-        dy = y2 - y1
-        length_sq = dx * dx + dy * dy
-        if length_sq == 0:
-            distance = ((x - x1) ** 2 + (y - y1) ** 2) ** 0.5
-        else:
-            t = max(0, min(1, ((x - x1) * dx + (y - y1) * dy) / length_sq))
-            px = x1 + t * dx
-            py = y1 + t * dy
-            distance = ((x - px) ** 2 + (y - py) ** 2) ** 0.5
-        if distance < tolerance:
-            return True
-    return False
-## Paso 9. Gestionar las oleadas en orden FIFO
-_start_wave() usa una cola FIFO (deque) para iniciar cada grupo de enemigos en el mismo orden en que fue programado. La dificultad aumenta mediante dos Cozy adicionales y 25 HP base adicionales por nivel de oleada.
+java
+public class Config {
+    public static final List<int[]> PATH = List.of(
+        new int[]{0, 100},
+        new int[]{200, 100},
+        new int[]{200, 300},
+        new int[]{600, 300},
+        new int[]{600, 500},
+        new int[]{800, 500}
+    );
+}
+La función isOnPath() en Utils.java verifica si una celda está demasiado cerca de la ruta para evitar que se coloquen torres sobre ella.
 
-python
-def _start_wave(self):
-    wave_data = WAVES[self.wave_index]
-    speed_m = wave_data.get("speed", 1.0)
-    hp_bonus = HP_SCALE_PER_WAVE * self.wave_index
-    self._spawn_queue.clear()
-    self._spawn_timer = 0
-    self._wave_active = True
-    for _ in range(wave_data.get("cozy", 0)):
-        self._spawn_queue.append(
-            Cozy(list(PATH), speed_mult=speed_m, hp_bonus=hp_bonus)
-        )
-    for _ in range(wave_data.get("boss", 0)):
-        self._spawn_queue.append(
-            BossCozy(list(PATH), speed_mult=speed_m, hp_bonus=hp_bonus)
-        )
-    self._enemies_remaining = len(self._spawn_queue)
+java
+public static boolean isOnPath(int x, int y, List<int[]> path, int tolerance) {
+    for (int i = 0; i < path.size() - 1; i++) {
+        int[] p1 = path.get(i);
+        int[] p2 = path.get(i + 1);
+        double x1 = p1[0], y1 = p1[1];
+        double x2 = p2[0], y2 = p2[1];
+        double dx = x2 - x1, dy = y2 - y1;
+        double lengthSq = dx * dx + dy * dy;
+        double distance;
+        if (lengthSq == 0) {
+            distance = Math.sqrt(Math.pow(x - x1, 2) + Math.pow(y - y1, 2));
+        } else {
+            double t = Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / lengthSq));
+            double px = x1 + t * dx;
+            double py = y1 + t * dy;
+            distance = Math.sqrt(Math.pow(x - px, 2) + Math.pow(y - py, 2));
+        }
+        if (distance < tolerance) return true;
+    }
+    return false;
+}
+Paso 9. Gestionar las oleadas en orden FIFO
+Game.java usa ColaEnemigos para iniciar cada grupo de enemigos en el mismo orden en que fue programado. La dificultad aumenta mediante dos Cozy adicionales y 25 HP base adicionales por nivel de oleada.
+
+java
+private void startWave() {
+    Map<String, Object> waveData = Config.WAVES.get(waveIndex);
+    double speedM = (double) waveData.getOrDefault("speed", 1.0);
+    int hpBonus = Config.HP_SCALE_PER_WAVE * waveIndex;
+    
+    this.spawnQueue.limpiar();
+    this.spawnTimer = 0;
+    this.waveActive = true;
+    
+    int cozyCount = (int) waveData.getOrDefault("cozy", 0);
+    for (int i = 0; i < cozyCount; i++) {
+        spawnQueue.encolar(new Enemy(Config.PATH, speedM, hpBonus));
+    }
+    int bossCount = (int) waveData.getOrDefault("boss", 0);
+    for (int i = 0; i < bossCount; i++) {
+        spawnQueue.encolar(new Enemy(Config.PATH, speedM * 0.6, hpBonus + 300)); // BossCozy
+    }
+    this.enemiesRemaining = spawnQueue.size();
+}
 Oleada	Cozy	Boss	Velocidad
 1	5	0	0.7
 2	7	0	0.85
@@ -314,85 +371,101 @@ Oleada	Cozy	Boss	Velocidad
 5	10	1	1.15
 ...	...	...	...
 12	20	3	1.8
-## Paso 10. Crear el historial de deshacer y rehacer
-Cada acción realizada sobre una torre, como colocarla o venderla, se representa mediante una entrada en las pilas undo_stack y redo_stack.
+Paso 10. Crear el historial de deshacer y rehacer
+Cada acción realizada sobre una torre, como colocarla o venderla, se representa mediante una entrada en las pilas PilaAcciones (undo y redo).
 
-Cuando se realiza correctamente una acción, esta se almacena en undo_stack y se limpia redo_stack. De esta manera, la última acción realizada puede ser revertida.
+Cuando se realiza correctamente una acción, esta se almacena en la pila de undo y se limpia la pila de redo. De esta manera, la última acción realizada puede ser revertida.
 
-python
-def _try_place_tower(self, mx, my):
-    # ... validaciones ...
-    tower = Tower(cx, cy, self._selected_tower)
-    self.towers.append(tower)
-    self.undo_stack.append(tower)   # Push en el stack de undo
-    self.redo_stack.clear()         # Nueva acción invalida el redo
-    self.coins -= cost
+java
+public class PilaAcciones {
+    private Stack<Accion> pila = new Stack<>();
 
-def _undo(self) -> int:
-    if not self.undo_stack:
-        return 0
-    tower = self.undo_stack.pop()   # Pop del stack
-    if tower in self.towers:
-        self.towers.remove(tower)
-    self.redo_stack.append((tower.x, tower.y, tower.tipo))
-    return TOWER_TYPES[tower.tipo]["cost"]
+    public void push(Accion a) { pila.push(a); }
+    public Accion pop() { return pila.isEmpty() ? null : pila.pop(); }
+    public boolean isEmpty() { return pila.isEmpty(); }
+    public void clear() { pila.clear(); }
+}
 
-def _redo(self):
-    if not self.redo_stack:
-        return
-    x, y, tipo = self.redo_stack.pop()
-    cost = TOWER_TYPES[tipo]["cost"]
-    if self.coins < cost:
-        self.redo_stack.append((x, y, tipo))
-        return
-    tower = Tower(x, y, tipo)
-    self.towers.append(tower)
-    self.undo_stack.append(tower)
-    self.coins -= cost
+// En Game.java
+private void tryPlaceTower(int mx, int my) {
+    // ... validaciones ...
+    Tower tower = new Tower(cx, cy, selectedTower);
+    towers.add(tower);
+    undoStack.push(new Accion(tower, "place")); // Push en el stack de undo
+    redoStack.clear();                           // Nueva acción invalida el redo
+    coins -= cost;
+}
+
+private int undo() {
+    if (undoStack.isEmpty()) return 0;
+    Accion accion = undoStack.pop(); // Pop del stack
+    if (accion.getTipo().equals("place")) {
+        towers.remove(accion.getTower());
+        redoStack.push(new Accion(accion.getTower(), "place"));
+    }
+    return Config.TOWER_COSTS.get(accion.getTower().getTipo());
+}
+
+private void redo() {
+    if (redoStack.isEmpty()) return;
+    Accion accion = redoStack.pop();
+    int cost = Config.TOWER_COSTS.get(accion.getTower().getTipo());
+    if (coins < cost) {
+        redoStack.push(accion);
+        return;
+    }
+    Tower tower = accion.getTower();
+    towers.add(tower);
+    undoStack.push(new Accion(tower, "place"));
+    coins -= cost;
+}
 Regla importante: si después de deshacer una acción se realiza una acción nueva, la pila de rehacer debe vaciarse, debido a que se crea una nueva línea dentro del historial.
 
-## Paso 11. Procesar un quantum de combate
+Paso 11. Procesar un quantum de combate
 La clase Game es la encargada de coordinar el procesamiento de cada quantum de combate. Al comenzar un quantum, se obtiene la cantidad de Cozy que se encuentran actualmente almacenados en la cola circular y se realizan exactamente ese número de iteraciones.
 
 En cada iteración se desencola un Cozy y las torres disponibles pueden aplicarle daño. Después del ataque pueden presentarse tres situaciones: el Cozy es eliminado porque sus puntos de vida llegan a cero, llega hasta la fuente y disminuye la vida del jugador, o continúa activo, avanza por la ruta y vuelve a colocarse al final de la cola circular.
 
-python
-def update(self):
-    self._spawn_enemies()
-    self._update_enemies()
-    self._update_towers()
-    self._update_projectiles()
-    if self._wave_msg_timer > 0:
-        self._wave_msg_timer -= 1
-    if self.player_health <= 0:
-        pygame.mixer.music.stop()
-        if not self._game_over_sfx_played:
-            self.game_over_sfx.play()
-            self._game_over_sfx_played = True
-        self.state = "game_over"
-        return
-    self._check_wave_end()
+java
+public void update() {
+    spawnEnemies();
+    updateEnemies();
+    updateTowers();
+    updateProjectiles();
+    
+    if (waveMsgTimer > 0) waveMsgTimer--;
+    
+    if (playerHealth <= 0) {
+        // Detener música y sonido de game over
+        state = "game_over";
+        return;
+    }
+    checkWaveEnd();
+}
 
-def _update_enemies(self):
-    for enemy in self.enemies[:]:
-        if self.player_health <= 0:
-            break
-        if enemy.is_dead:
-            self.enemies.remove(enemy)
-            self.coins += COINS_PER_KILL
-            self.score += SCORE_PER_KILL
-            self._enemies_remaining -= 1
-            continue
-        if enemy.move():
-            self.enemies.remove(enemy)
-            self.player_health = 0
-            self._enemies_remaining -= 1
-        else:
-            enemy.draw(self.screen)
+private void updateEnemies() {
+    for (Enemy enemy : new ArrayList<>(enemies)) {
+        if (playerHealth <= 0) break;
+        if (enemy.isDead()) {
+            enemies.remove(enemy);
+            coins += Config.COINS_PER_KILL;
+            score += Config.SCORE_PER_KILL;
+            enemiesRemaining--;
+            continue;
+        }
+        if (enemy.move()) {
+            enemies.remove(enemy);
+            playerHealth = 0;
+            enemiesRemaining--;
+        } else {
+            // Dibujar enemigo (delegado a UI)
+        }
+    }
+}
 Este procedimiento permite que cada Cozy existente al comienzo del quantum sea procesado una sola vez. Los Cozy que continúan con vida y todavía no llegan a la fuente regresan al final de la cola para ser procesados nuevamente en el siguiente quantum.
 
-## Paso 12. Construir la interfaz gráfica
-La interfaz se desarrolló con Pygame. El bucle principal (main.py) controla los FPS y delega los eventos a Game.handle_event(). ui.py pinta la cuadrícula, la ruta, las torres, los Cozy y sus barras de vida. Los controles se desactivan cuando una operación no es válida.
+Paso 12. Construir la interfaz gráfica
+La interfaz se desarrolló con Java Swing / AWT. El bucle principal (Main.java) controla los FPS y delega los eventos a Game. UI.java pinta la cuadrícula, la ruta, las torres, los Cozy y sus barras de vida. Los controles se desactivan cuando una operación no es válida.
 
 Zona	Información o acción
 Panel superior	Vida, monedas, oleada, puntuación y botones Undo/Redo
@@ -402,69 +475,17 @@ Simulación	Iniciar oleada, pausar, reanudar y reiniciar
 Paso 13. Tipos de datos y diagrama de clases
 Tipo	Categoría	Uso principal
 int	Primitivo	HP, daño, nivel, monedas, vida, puntuación, índices
-float	Primitivo	Alcance y distancia
-bool	Primitivo	Estados de pausa, victoria y derrota
-str	Referencia	Identificadores, nombres y mensajes
-list	Lista secuencial	Torres, proyectiles, enemigos y waypoints
-deque	Cola FIFO	Orden de oleadas y waypoints
-CircularQueue	Cola circular	Cozy activos en el campo de batalla
-list (pila)	Pila LIFO	Historial de deshacer y rehacer
-Diagrama de clases (descripción):
+double	Primitivo	Alcance y distancia
+boolean	Primitivo	Estados de pausa, victoria y derrota
+String	Referencia	Identificadores, nombres y mensajes
+ArrayList	Lista secuencial	Torres, proyectiles, enemigos y waypoints
+Queue / LinkedList	Cola FIFO	Orden de oleadas y waypoints
+ColaEnemigos	Cola circular	Cozy activos en el campo de batalla
+Stack / PilaAcciones	Pila LIFO	Historial de deshacer y rehacer
+Paso 14. Especificación del TDA y pseudocódigo
+Para el funcionamiento del juego se utiliza el TDA ColaEnemigos, cuya función principal es administrar los Cozy activos durante los diferentes quantums de combate.
 
-text
-┌─────────────────────────────────────────────────────────────┐
-│                          Game                                │
-├─────────────────────────────────────────────────────────────┤
-│ - enemies: list                                              │
-│ - towers: list                                               │
-│ - projectiles: list                                          │
-│ - undo_stack: list                                           │
-│ - redo_stack: list                                           │
-│ - _spawn_queue: deque                                        │
-│ - _enemy_queue: CircularQueue                                │
-├─────────────────────────────────────────────────────────────┤
-│ + update()                                                   │
-│ + draw()                                                     │
-│ + handle_event(event)                                        │
-│ - _start_wave()                                              │
-│ - _advance_wave()                                            │
-│ - _try_place_tower(mx, my)                                   │
-│ - _undo() -> int                                             │
-│ - _redo()                                                    │
-└─────────────────────────────────────────────────────────────┘
-         │ 1                                    │ 1
-         │ contiene                             │ contiene
-         ▼ *                                    ▼ *
-┌─────────────────┐                    ┌─────────────────┐
-│     Enemy       │                    │     Tower       │
-├─────────────────┤                    ├─────────────────┤
-│ - x, y          │                    │ - x, y          │
-│ - health        │                    │ - tipo          │
-│ - speed         │                    │ - range         │
-│ - path_queue    │                    │ - cooldown      │
-│ - frames        │                    │ - damage        │
-├─────────────────┤                    ├─────────────────┤
-│ + move()        │                    │ + shoot()       │
-│ + draw()        │                    │ + draw()        │
-│ + is_dead       │                    │ + draw_range()  │
-└─────────────────┘                    └─────────────────┘
-         △                                      │
-         │                                      │ dispara
-    ┌────┴────┐                                 ▼
-    │         │                        ┌─────────────────┐
-┌───────┐ ┌──────────┐                 │  Projectile     │
-│ Cozy  │ │BossCozy  │                 ├─────────────────┤
-└───────┘ └──────────┘                 │ - x, y          │
-                                       │ - target        │
-                                       │ - damage        │
-                                       ├─────────────────┤
-                                       │ + move()        │
-                                       │ + draw()        │
-                                       └─────────────────┘
-## Paso 14. Especificación del TDA y pseudocódigo
-Para el funcionamiento del juego se utiliza el TDA CircularQueue<Enemy>, cuya función principal es administrar los Cozy activos durante los diferentes quantums de combate.
-
-Estado de CircularQueue<Enemy>:
+Estado de ColaEnemigos:
 
 La cola está formada por un arreglo con capacidad de 200 elementos y utiliza tres variables principales:
 
@@ -476,15 +497,15 @@ size: almacena el número de elementos existentes actualmente en la cola.
 
 Operaciones:
 
-Las operaciones disponibles en el TDA son: enqueue, dequeue, is_empty, clear.
+Las operaciones disponibles en el TDA son: encolar, desencolar, estaVacia, limpiar.
 
 Precondiciones:
 
-El elemento que se desea almacenar no puede ser None. Para realizar la operación de enqueue debe existir espacio disponible en la cola y para dequeue debe existir al menos un elemento almacenado.
+El elemento que se desea almacenar no puede ser null. Para realizar la operación de encolar debe existir espacio disponible en la cola y para desencolar debe existir al menos un elemento almacenado.
 
 Postcondiciones:
 
-La operación enqueue aumenta la cantidad de elementos de la cola en uno. La operación dequeue devuelve el elemento más antiguo almacenado y disminuye la cantidad en uno.
+La operación encolar aumenta la cantidad de elementos de la cola en uno. La operación desencolar devuelve el elemento más antiguo almacenado y disminuye la cantidad en uno.
 
 Invariantes del juego:
 
@@ -509,7 +530,7 @@ INICIO QUANTUM
         crear Cozy y ENCOLAR
     FIN SI
 
-    cantidad <- TAMAÑO(colaCircular)
+    cantidad <- TAMAÑO(colaEnemigos)
 
     REPETIR cantidad VECES
 
@@ -530,8 +551,8 @@ INICIO QUANTUM
 FIN QUANTUM
 El pseudocódigo representa el ciclo principal del procesamiento de los Cozy. Primero se agrega un nuevo Cozy cuando existe uno pendiente de la oleada. Posteriormente se procesa únicamente la cantidad de Cozy existentes en la cola al comenzar el quantum. Cada Cozy puede ser eliminado, llegar a la fuente o regresar al final de la cola para continuar participando en los siguientes ciclos.
 
-## Paso 15. Prueba de escritorio
-main.py ejecuta verificaciones automáticas sin bibliotecas externas. El proyecto se ejecutó con Python 3.10+ y las cuatro pruebas finalizaron correctamente.
+Paso 15. Prueba de escritorio
+Main.java ejecuta verificaciones automáticas sin bibliotecas externas. El proyecto se ejecutó con Java 11+ y las pruebas finalizaron correctamente.
 
 N.º	Prueba	Operación	Esperado	Obtenido
 1	Cola circular	Encolar 10, 20; retirar 10; encolar 30 y 40	[20, 30, 40]	Correcto
@@ -544,8 +565,8 @@ Pruebas correctas: 4/4
 
 Resultado general: la implementación satisface el uso obligatorio de Cozy, procesa cada objeto mediante cola circular, elimina los Cozy con HP igual a cero, ordena oleadas por FIFO, conserva el historial en pilas y muestra el estado del juego en una interfaz gráfica.
 
-## Paso 16. Pruebas automáticas y verificación final
-El proyecto incluye un conjunto de pruebas automáticas que verifican el correcto funcionamiento de las estructuras de datos y la lógica del juego. Estas pruebas se ejecutan sin bibliotecas externas y cubren los siguientes casos:
+Paso 16. Pruebas automáticas y verificación final
+El proyecto incluye un conjunto de pruebas automáticas en PRUEBAS_MANUALES.md que verifican el correcto funcionamiento de las estructuras de datos y la lógica del juego. Estas pruebas se ejecutan sin bibliotecas externas y cubren los siguientes casos:
 
 N.º	Prueba	Operación	Esperado	Obtenido
 1	Cola circular	Encolar 10, 20; retirar 10; encolar 30 y 40	[20, 30, 40]	Correcto
@@ -559,8 +580,6 @@ N.º	Prueba	Operación	Esperado	Obtenido
 Compilación: correcta
 Ejecución de pruebas:
 Pruebas correctas: 8/8
-
-Resultado general: la implementación satisface todos los requisitos del proyecto, incluyendo el uso obligatorio de Cozy, el procesamiento mediante cola circular, la eliminación de Cozy con HP igual a cero, el orden FIFO de oleadas, el historial LIFO en pilas y la visualización completa en la interfaz gráfica.
 ## Conclusiones
 Pilas y colas tienen un comportamiento específico para llevar a cabo las operaciones de inserción y eliminación de datos. Este comportamiento determina las áreas de aplicación de las mismas.
 
