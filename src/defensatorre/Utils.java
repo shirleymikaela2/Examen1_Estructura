@@ -8,4 +8,4 @@ public final class Utils {
         return Math.sqrt(dx * dx + dy * dy);
     }
 }
-// Modificación para registrar segundo commit
+// Segundo commit: actualización de comentarios
