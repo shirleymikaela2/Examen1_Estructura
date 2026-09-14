@@ -17,6 +17,14 @@ Consiste en un juego básico de defensa de torres: los enemigos avanzan por un c
 
 Aplicar estructuras de datos en Java mediante un juego Tower Defense, utilizando colas para gestionar enemigos y pilas para las acciones de deshacer y rehacer.
 
+## Específicos:
+
+Implementar una cola circular, una cola FIFO y pilas para controlar el recorrido de los enemigos (Cozy), el orden de las oleadas y las operaciones de deshacer y rehacer.
+
+Aplicar estructuras de datos secuenciales para gestionar el estado del juego: enemigos activos, torres colocadas, proyectiles en vuelo y el historial de acciones.
+
+Integrar las estructuras de datos desarrolladas en una interfaz gráfica funcional que permita simular, visualizar y comprobar el comportamiento del juego.
+
 ## Funcionalidades
 
 - Colocar torres en el tablero.
